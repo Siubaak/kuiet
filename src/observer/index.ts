@@ -1,9 +1,9 @@
-import { is } from '../util'
-
-const hasOwnProperty = Object.prototype.hasOwnProperty
+import { is, defineProperty, hasOwnProperty } from '../util'
+import Dep from './dep'
 
 export default class Observer {
   private value: any
+  private dep: Dep = new Dep()
 
   constructor(value: any) {
     this.value = value
@@ -12,28 +12,31 @@ export default class Observer {
       return
     }
 
-    Object.defineProperty(value, '__ob__', {
-      value: this,
-      enumerable: false,
-      writable: true,
-      configurable: true,
-    })
+    defineProperty(value, '__ob__', this)
 
     if (is.object(value)) {
       const keys = Object.keys(value)
       for (let i = 0; i < keys.length; i++) {   
-        this._defineReactive(value, keys[i], value[keys[i]])
+        Observer.defineReactive(value, keys[i], value[keys[i]])
       }
     } else {
-      for (let i = 0; i < value.length; i++) {
-        this._observe(value[i])
-      }
+      Observer.observeArray(value)
     }
   }
 
-  private _observe(value: any): Observer {
+  static observeArray(value: any[]): void {
+    for (let i = 0; i < value.length; i++) {
+      Observer.observe(value[i])
+    }
+  }
+
+  static observe(value: any): Observer | void {
+    if (!is.object(value) && !is.array(value)) {
+      return
+    }
+
     if (
-      hasOwnProperty.call(value, '__ob__')
+      hasOwnProperty(value, '__ob__')
       && value.__ob__ instanceof Observer
     ) {
       return value.__ob__
@@ -42,14 +45,16 @@ export default class Observer {
     }
   }
 
-  private _defineReactive(obj: Object, key: string, val: any) {
+  static defineReactive(obj: object, key: string, val: any) {
     const descriptor = Object.getOwnPropertyDescriptor(obj, key)
 
     if (descriptor && !descriptor.configurable) {
       return
     }
+    
+    const dep = new Dep()
 
-    const childOb = this._observe(val)
+    let childOb = Observer.observe(val)
 
     const getter = descriptor && descriptor.get
     const setter = descriptor && descriptor.set
@@ -59,6 +64,15 @@ export default class Observer {
       configurable: true,
       get() {
         const value = getter ? getter.call(obj) : val
+        if (Dep.target) {
+          dep.depend()
+          if (childOb) {
+            childOb.dep.depend()
+            if (is.array(value)) {
+              
+            }
+          }
+        }
         return value
       },
       set(nextVal: any) {
@@ -73,6 +87,9 @@ export default class Observer {
         } else {
           val = nextVal
         }
+
+        childOb = Observer.observe(val)
+
       },
     })
   }

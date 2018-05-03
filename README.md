@@ -2,6 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/kuiet.svg?style=flat-square)](https://www.npmjs.com/package/kuiet)
 [![travis-ci](https://img.shields.io/travis/Siubaak/kuiet.svg?style=flat-square)](https://travis-ci.org/Siubaak/kuiet)
+[![coveralls](https://img.shields.io/coveralls/github/Siubaak/kuiet.svg?style=flat-square)](https://coveralls.io/github/Siubaak/kuiet)
 
 This is a simple Vue-like reactive framework, developed when I learnt the source codes of Vue.
 
